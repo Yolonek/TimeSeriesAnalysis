@@ -1,0 +1,2 @@
+1. Dokładna diagonalizacja hamiltonianu, link 1
+2. Korzystać z kodu od NetKet, przeczytać Troyera.
