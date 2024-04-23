@@ -1,6 +1,8 @@
 import mplcyberpunk
 import numpy as np
+from matplotlib import pyplot as plt
 from matplotlib.collections import PolyCollection
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 
 def enhance_plot(figure, axes, glow=False, alpha_gradient=0, lines=True):
@@ -19,6 +21,43 @@ def set_polygon_color(axes, color):
     for item in axes.collections:
         if isinstance(item, PolyCollection):
             item.set_facecolor(color)
+
+
+def plot_time_series_analysis(model_list, time_series_list, theta_params_list, lags, size, alpha, title, file):
+    colors = ['red', 'lime', None, 'blueviolet']
+    bg_colors = ['maroon', 'green', None, 'indigo']
+    with plt.style.context('cyberpunk'):
+        figure, axes = plt.subplot_mosaic(
+            [['time', 'time'], *[[f'acf-{theta}', f'pacf-{theta}'] for theta in theta_params_list]],
+            layout='constrained', figsize=size,
+            height_ratios=[2, *[1 for _ in range(len(time_series_list))]])
+        for index, (theta_params, time_series, model) in (
+                enumerate(zip(theta_params_list, time_series_list, model_list))):
+            num_of_series = len(time_series_list)
+            time_domain = range(1, len(time_series) + 1)
+            axes['time'].scatter(time_domain, time_series, s=1,
+                                 label=str(model), alpha=alpha,
+                                 color=colors[index])
+            axes['time'].legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), labelspacing=0.1,
+                                ncol=len(model_list), borderpad=0.1, markerscale=6)
+            plot_acf(time_series, ax=axes[f'acf-{theta_params}'], lags=lags, title=None,
+                     color=colors[index], vlines_kwargs=dict(color=bg_colors[index]))
+            set_polygon_color(axes[f'acf-{theta_params}'], colors[index])
+            plot_pacf(time_series, ax=axes[f'pacf-{theta_params}'], lags=lags, title=None,
+                      color=colors[index], vlines_kwargs=dict(color=bg_colors[index]))
+            set_polygon_color(axes[f'pacf-{theta_params}'], colors[index])
+            axes['time'].set(ylabel='Time Series')
+            if index == num_of_series - 1:
+                axes[f'acf-{theta_params}'].set(xlabel='lag')
+                axes[f'pacf-{theta_params}'].set(xlabel='lag')
+            if index == 0:
+                axes[f'acf-{theta_params}'].set(title='Autocorrelation')
+                axes[f'pacf-{theta_params}'].set(title='Partial Autocorrelation')
+            enhance_plot(figure, axes[f'acf-{theta_params}'])
+            enhance_plot(figure, axes[f'pacf-{theta_params}'])
+        figure.suptitle(title)
+        enhance_plot(figure, axes=axes['time'])
+    figure.savefig(file)
 
 
 class AutoRegressiveModel:
