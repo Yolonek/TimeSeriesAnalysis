@@ -5,9 +5,12 @@ from matplotlib.collections import PolyCollection
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 
-def enhance_plot(figure, axes, glow=False, alpha_gradient=0, lines=True):
+def enhance_plot(figure, axes, glow=False, alpha_gradient=0, lines=True, dpi=100):
     figure.set_facecolor('black')
+    figure.set_dpi(dpi)
     axes.set_facecolor('black')
+    for font in [axes.title, axes.xaxis.label, axes.yaxis.label]:
+        font.set_fontweight('bold')
     if glow:
         if lines:
             mplcyberpunk.make_lines_glow(ax=axes)
